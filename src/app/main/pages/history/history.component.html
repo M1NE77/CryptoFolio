@@ -1,0 +1,41 @@
+<div class="container page-wrap">
+  <div class="bg-white border rounded mt-5 p-5">
+    <span class="h3">Historial</span>
+  </div>
+
+  <div class="bg-white border rounded p-5 my-5">
+    <div class="row">
+      <div *ngIf="historial.length > 0 ">
+        <p-table [value]="historial" responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Símbolo</th>
+              <th>Acciones</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-crypto>
+            <tr>
+              <td role="button">{{ crypto }}</td>
+              <td class="pe-1 ps-0 px-lg-2">
+                <div class="d-flex">
+                  <a [routerLink]="['/details', crypto]" title="Detalles"><img class="small-icon img-fluid"
+                      src="../../../../assets/img/details.png" width="25"></a>
+                  <a *ngIf="!portafolio.has(crypto)" [routerLink]="['/portfolio', crypto]"><img class="small-icon img-fluid"
+                      src="../../../../assets/img/add.png" width="25" title="Agregar" class="ms-2"></a>
+                  <img class="small-icon img-fluid ms-2" src="../../../../assets/img/delete.png" role="button"
+                    width="25" (click)="eliminar(crypto)" title="Eliminar">
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+      <div *ngIf="historial.length == 0">
+        <span class="text-danger">Aún no hay ninguna búsqueda registrada.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle" [breakpoints]="{'640px': '90vw'}">
+</p-confirmDialog>

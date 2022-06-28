@@ -1,0 +1,25 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+  <div class="container">
+    <a class="navbar-brand fw-bold" [routerLink]="['/']">
+      <img src="../../../assets/img/logo.png" alt="CryptoFolio" width="35">
+      CryptoFolio
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li routerLink="portfolio" routerLinkActive="active" class="nav-link" role="button">Portafolio</li>
+        <li routerLink="all" routerLinkActive="active" class="nav-link" role="button">Listado de criptomonedas</li>
+        <li routerLink="history" routerLinkActive="active" class="nav-link" role="button">Historial</li>
+      </ul>
+      <form class="d-flex">
+        <input class="form-control me-2" type="search" aria-label="Buscar" placeholder="Buscar..." name="id" [(ngModel)]="id" (keyup.enter)="buscar()">
+        <button pButton class="p-button-outlined" style="min-width: 5rem;" type="button" (click)="buscar()" label="Buscar"></button>
+        <select class="form-control ms-2 w-auto text-center p-1" id="currencie" (change)="cambiarMoneda($any($event.target).value)">
+          <option *ngFor="let item of monedas" [value]="item" [selected]="item === moneda[0]">{{ item }}</option>
+        </select>
+      </form>
+    </div>
+  </div>
+</nav>

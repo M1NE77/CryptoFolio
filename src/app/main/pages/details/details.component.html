@@ -1,0 +1,531 @@
+<div *ngIf="!crypto;" class="container my-5">
+  <div class="alert alert-info">Espere por favor...</div>
+</div>
+
+<div *ngIf="crypto; then divCrypto"></div>
+<ng-template #divCrypto>
+  <div class="container my-5">
+    <div class="bg-white border p-3">
+      <div class="d-flex align-items-center justify-content-center">
+        <div *ngIf="crypto.logo_url !== ''; then imagen else noImagen"></div>
+        <ng-template #imagen>
+          <img class="small-icon img-fluid" [src]="crypto.logo_url" width="70">
+        </ng-template>
+        <ng-template #noImagen>
+          <img class="small-icon img-fluid" src="../../../../assets/img/unknown.png" width="70">
+        </ng-template>
+        <span class="ms-3">
+          <span class="h1">{{ crypto.name }}</span>
+          <span class="h3 ms-3 text-muted fw-light">
+            ({{ crypto.symbol }})
+            <a *ngIf="!portafolio.has(crypto.symbol)" [routerLink]="['/portfolio', crypto.symbol]" class="ms-1"><img class="small-icon img-fluid" src="../../../../assets/img/add.png" width="25" title="Agregar"></a></span>
+        </span>
+      </div>
+    </div>
+
+    <div class="bg-white border mt-5 rounded">
+      <div class="row">
+        <div class="col-12">
+          <div class="border-bottom p-5">
+            <span class="h3">Estadísticas de {{ crypto.name }}</span>
+          </div>
+        </div>
+        <div class="col-12 col-lg-6 p-5">
+          <div class="table-responsive">
+            <table class="table">
+              <tbody>
+                <tr>
+                  <th>Rango:</th>
+                  <td>
+                    <div *ngIf="crypto.rank !== undefined; then rango else desconocido"></div>
+                    <ng-template #rango>#{{ crypto.rank }}</ng-template>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Precio de {{ crypto.name }} (24H):</th>
+                  <td>
+                    <div *ngIf="crypto.price !== undefined; then precio else desconocido"></div>
+                    <ng-template #precio>
+                      <div *ngIf="+crypto.price < 0.01; then menor else mayor"></div>
+                      <ng-template #menor>
+                        <div *ngIf="+crypto.price < 0.0000000001; then infinitesimal else noInfinitesimal"></div>
+                        <ng-template #infinitesimal>
+                          <span class="me-2"><{{ 0.0000000001 | currency: moneda:'symbol':'1.2-10' }}</span>
+                        </ng-template>
+                        <ng-template #noInfinitesimal>
+                          <span class="me-2">{{ crypto.price | currency: moneda:'symbol':'1.2-10' }}</span>
+                        </ng-template>
+                      </ng-template>
+                      <ng-template #mayor>
+                        <span class="me-2">{{ crypto.price | currency: moneda }}</span>
+                      </ng-template>
+                      <span class="d-xl-none"><br></span>
+                      <ng-container *ngIf="crypto['1d'] !== undefined">
+                        <ng-container *ngIf="crypto['1d'].price_change_pct !== undefined">
+                          <div *ngIf="(+crypto['1d'].price_change_pct * 100) >= 0; then precioPositivo else precioNegativo"></div>
+                          <ng-template #precioPositivo>
+                            <span class="text-success">+{{ (+crypto['1d'].price_change_pct * 100) | number:'.2-2' }}%</span>
+                          </ng-template>
+                          <ng-template #precioNegativo>
+                            <span class="text-danger">{{ (+crypto['1d'].price_change_pct * 100) | number:'.2-2' }}%</span>
+                          </ng-template>
+                        </ng-container>
+                      </ng-container>
+                    </ng-template>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Capitalización de mercado (24H):</th>
+                  <td>
+                    <div *ngIf="crypto.market_cap !== undefined; then mercado else desconocido"></div>
+                    <ng-template #mercado>
+                      <span class="me-2">{{ crypto.market_cap | currency: moneda }}</span>
+                      <span class="d-xl-none"><br></span>
+                      <ng-container *ngIf="crypto['1d'] !== undefined">
+                        <ng-container *ngIf="crypto['1d'].market_cap_change_pct !== undefined">
+                          <div *ngIf="(+crypto['1d'].market_cap_change_pct * 100) > 0; then mercadoPositivo else mercadoNegativo"></div>
+                          <ng-template #mercadoPositivo>
+                            <span class="text-success">+{{ (+crypto['1d'].market_cap_change_pct * 100) | number:'.2-2' }}%</span>
+                          </ng-template>
+                          <ng-template #mercadoNegativo>
+                            <span class="text-danger">{{ (+crypto['1d'].market_cap_change_pct * 100) | number:'.2-2' }}%</span>
+                          </ng-template>
+                        </ng-container>
+                      </ng-container>
+                    </ng-template>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Volumen (24H):</th>
+                  <td>
+                    <div *ngIf="crypto['1d'] !== undefined; then volumen else desconocido"></div>
+                    <ng-template #volumen>
+                      <span class="me-2">{{ crypto['1d'].volume | currency: moneda }}</span>
+                      <span class="d-xl-none"><br></span>
+                      <ng-container *ngIf="crypto['1d'].volume_change_pct !== undefined">
+                        <div *ngIf="(+crypto['1d'].volume_change_pct * 100) > 0; then volumenPositivo else volumenNegativo"></div>
+                        <ng-template #volumenPositivo>
+                          <span class="text-success">+{{ (+crypto['1d'].volume_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                        <ng-template #volumenNegativo>
+                          <span class="text-danger">{{ (+crypto['1d'].volume_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                      </ng-container>
+                    </ng-template>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Suministro circulante:</th>
+                  <td>
+                    <div *ngIf="crypto.circulating_supply !== undefined; then suministro else desconocido"></div>
+                    <ng-template #suministro>
+                      {{ crypto.circulating_supply | number }}
+                      <ng-container *ngIf="crypto.max_supply!== undefined;">
+                        ({{ (+crypto.circulating_supply * 100) / +crypto.max_supply | number: '1.2-2' }}%)
+                        <div class="progress">
+                          <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                            [style.width.%]="((+crypto.circulating_supply * 100) / +crypto.max_supply)"
+                            aria-valuenow="((+crypto.circulating_supply * 100) / +crypto.max_supply)" aria-valuemin="0"
+                            aria-valuemax="100"></div>
+                        </div>
+                      </ng-container>
+                    </ng-template>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="table-responsive pt-5">
+            <table class="table">
+              <tbody>
+                <tr>
+                  <th>Precio más alto:</th>
+                  <td>
+                    <div *ngIf="crypto.high !== undefined; then maximo else desconocido"></div>
+                    <ng-template #maximo>
+                      <div *ngIf="+crypto.high < 0.01; then maximoMenor else maximoMayor"></div>
+                      <ng-template #maximoMenor>
+                        <div *ngIf="+crypto.high < 0.0000000001; then maximoInfinitesimal else maximoNoInfinitesimal"></div>
+                        <ng-template #maximoInfinitesimal>
+                          <span class="me-2"><{{ 0.0000000001 | currency: moneda:'symbol':'1.2-10' }}</span>
+                        </ng-template>
+                        <ng-template #maximoNoInfinitesimal>
+                          <span class="me-2">{{ crypto.high | currency: moneda:'symbol':'1.2-10' }}</span>
+                        </ng-template>
+                      </ng-template>
+                      <ng-template #maximoMayor>
+                        <span class="me-2">{{ crypto.high | currency: moneda }}</span>
+                      </ng-template>
+                      <span class="d-xl-none"><br></span>
+                      <div *ngIf="((+crypto.price * 100)/+crypto.high)-100 > 0; then diferenciaPositiva else diferenciaNegativa"></div>
+                      <ng-template #diferenciaPositiva>
+                        <span class="text-success">+{{ ((+crypto.price * 100)/+crypto.high)-100 | number:'.2-2' }}%</span>
+                      </ng-template>
+                      <ng-template #diferenciaNegativa>
+                        <span class="text-danger">{{ ((+crypto.price * 100)/+crypto.high)-100 | number:'.2-2' }}%</span>
+                      </ng-template>
+                    </ng-template>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Fecha del último máximo:</th>
+                  <td>
+                    <div *ngIf="crypto.high_timestamp !== undefined; then fecha else desconocido"></div>
+                    <ng-template #fecha>
+                      {{ crypto.high_timestamp | date: 'dd/MM/yyyy' }}
+                    </ng-template>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Exchanges:</th>
+                  <td>
+                    <div *ngIf="crypto.num_exchanges !== undefined; then exchanges else desconocido"></div>
+                    <ng-template #exchanges>
+                      {{ crypto.num_exchanges }}
+                    </ng-template>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Dominio:</th>
+                  <td>
+                    <div *ngIf="crypto.market_cap_dominance !== undefined; then dominio else desconocido"></div>
+                    <ng-template #dominio>
+                      {{ (+crypto.market_cap_dominance * 100) | number:'.2-2' }}%
+                    </ng-template>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Primer intercambio:</th>
+                  <td>
+                    <div *ngIf="crypto.first_trade !== undefined; then intercambio else desconocido"></div>
+                    <ng-template #intercambio>
+                      {{ crypto.first_trade| date: 'dd/MM/yyyy' }}
+                    </ng-template>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-6 p-5 pt-0">
+          <div class="d-lg-block d-none pt-5">
+            <span class="h3">Análisis gráfico de {{ crypto.name }}</span>
+          </div>
+          <div class="d-lg-none d-block pt-0">
+            <span class="h3">Análisis gráfico de {{ crypto.name }}</span>
+          </div>
+          <div id="tradingview" class="mt-3"></div>
+        </div>
+
+        <div class="col-12 col-lg-4 p-5 pt-0">
+          <span class="h3">Variación del precio</span>
+          <div class="table-responsive mt-4">
+            <table class="table">
+              <tbody>
+                <tr>
+                  <th>Precio (24H):</th>
+                  <td>
+                    <div *ngIf="crypto['1d']; then precio1d else desconocido"></div>
+                    <ng-template #precio1d>
+                      <div *ngIf="crypto['1d'].price_change_pct !== undefined; then precio1dChange else desconocido"></div>
+                      <ng-template #precio1dChange>
+                        <div *ngIf="(+crypto['1d'].price_change_pct * 100) >= 0; then precio1dPositivo else precio1dNegativo"></div>
+                        <ng-template #precio1dPositivo>
+                          <span class="text-success">+{{ (+crypto['1d'].price_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                        <ng-template #precio1dNegativo>
+                          <span class="text-danger">{{ (+crypto['1d'].price_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                      </ng-template>
+                    </ng-template>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Precio (7D):</th>
+                  <td>
+                    <div *ngIf="crypto['7d']; then precio7d else desconocido"></div>
+                    <ng-template #precio7d>
+                      <div *ngIf="crypto['7d'].price_change_pct !== undefined; then precio7dChange else desconocido"></div>
+                      <ng-template #precio7dChange>
+                        <div *ngIf="(+crypto['7d'].price_change_pct * 100) >= 0; then precio7dPositivo else precio7dNegativo"></div>
+                        <ng-template #precio7dPositivo>
+                          <span class="text-success">+{{ (+crypto['7d'].price_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                        <ng-template #precio7dNegativo>
+                          <span class="text-danger">{{ (+crypto['7d'].price_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                      </ng-template>
+                    </ng-template>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Precio (30D):</th>
+                  <td>
+                    <div *ngIf="crypto['30d']; then precio30d else desconocido"></div>
+                    <ng-template #precio30d>
+                      <div *ngIf="crypto['30d'].price_change_pct !== undefined; then precio30dChange else desconocido"></div>
+                      <ng-template #precio30dChange>
+                        <div *ngIf="(+crypto['30d'].price_change_pct * 100) >= 0; then precio30dPositivo else precio30dNegativo"></div>
+                        <ng-template #precio30dPositivo>
+                          <span class="text-success">+{{ (+crypto['30d'].price_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                        <ng-template #precio30dNegativo>
+                          <span class="text-danger">{{ (+crypto['30d'].price_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                      </ng-template>
+                    </ng-template>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Precio (365D):</th>
+                  <td>
+                    <div *ngIf="crypto['365d']; then precio365d else desconocido"></div>
+                    <ng-template #precio365d>
+                      <div *ngIf="crypto['365d'].price_change_pct !== undefined; then precio365dChange else desconocido"></div>
+                      <ng-template #precio365dChange>
+                        <div *ngIf="(+crypto['365d'].price_change_pct * 100) >= 0; then precio365dPositivo else precio365dNegativo"></div>
+                        <ng-template #precio365dPositivo>
+                          <span class="text-success">+{{ (+crypto['365d'].price_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                        <ng-template #precio365dNegativo>
+                          <span class="text-danger">{{ (+crypto['365d'].price_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                      </ng-template>
+                    </ng-template>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Precio (YTD):</th>
+                  <td>
+                    <div *ngIf="crypto['ytd']; then precioytd else desconocido"></div>
+                    <ng-template #precioytd>
+                      <div *ngIf="crypto['ytd'].price_change_pct !== undefined; then precioytdChange else desconocido"></div>
+                      <ng-template #precioytdChange>
+                        <div *ngIf="(+crypto['ytd'].price_change_pct * 100) >= 0; then precioytdPositivo else precioytdNegativo"></div>
+                        <ng-template #precioytdPositivo>
+                          <span class="text-success">+{{ (+crypto['ytd'].price_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                        <ng-template #precioytdNegativo>
+                          <span class="text-danger">{{ (+crypto['ytd'].price_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                      </ng-template>
+                    </ng-template>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-4 p-5 pt-0">
+          <span class="h3">Variación del volumen</span>
+          <div class="table-responsive mt-4">
+            <table class="table">
+              <tbody>
+                <tr>
+                  <th>Volumen (24H):</th>
+                  <td>
+                    <div *ngIf="crypto['1d']; then volumen1d else desconocido"></div>
+                    <ng-template #volumen1d>
+                      <div *ngIf="crypto['1d'].volume_change_pct !== undefined; then volumen1dChange else desconocido"></div>
+                      <ng-template #volumen1dChange>
+                        <div *ngIf="(+crypto['1d'].volume_change_pct * 100) >= 0; then volumen1dPositivo else volumen1dNegativo"></div>
+                        <ng-template #volumen1dPositivo>
+                          <span class="text-success">+{{ (+crypto['1d'].volume_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                        <ng-template #volumen1dNegativo>
+                          <span class="text-danger">{{ (+crypto['1d'].volume_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                      </ng-template>
+                    </ng-template>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Volumen (7D):</th>
+                  <td>
+                    <div *ngIf="crypto['7d']; then volumen7d else desconocido"></div>
+                    <ng-template #volumen7d>
+                      <div *ngIf="crypto['7d'].volume_change_pct !== undefined; then volumen7dChange else desconocido"></div>
+                      <ng-template #volumen7dChange>
+                        <div *ngIf="(+crypto['7d'].volume_change_pct * 100) >= 0; then volumen7dPositivo else volumen7dNegativo"></div>
+                        <ng-template #volumen7dPositivo>
+                          <span class="text-success">+{{ (+crypto['7d'].volume_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                        <ng-template #volumen7dNegativo>
+                          <span class="text-danger">{{ (+crypto['7d'].volume_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                      </ng-template>
+                    </ng-template>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Volumen (30D):</th>
+                  <td>
+                    <div *ngIf="crypto['30d']; then volumen30d else desconocido"></div>
+                    <ng-template #volumen30d>
+                      <div *ngIf="crypto['30d'].volume_change_pct !== undefined; then volumen30dChange else desconocido"></div>
+                      <ng-template #volumen30dChange>
+                        <div *ngIf="(+crypto['30d'].volume_change_pct * 100) >= 0; then volumen30dPositivo else volumen30dNegativo"></div>
+                        <ng-template #volumen30dPositivo>
+                          <span class="text-success">+{{ (+crypto['30d'].volume_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                        <ng-template #volumen30dNegativo>
+                          <span class="text-danger">{{ (+crypto['30d'].volume_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                      </ng-template>
+                    </ng-template>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Volumen (365D):</th>
+                  <td>
+                    <div *ngIf="crypto['365d']; then volumen365d else desconocido"></div>
+                    <ng-template #volumen365d>
+                      <div *ngIf="crypto['365d'].volume_change_pct !== undefined; then volumen365dChange else desconocido"></div>
+                      <ng-template #volumen365dChange>
+                        <div *ngIf="(+crypto['365d'].volume_change_pct * 100) >= 0; then volumen365dPositivo else volumen365dNegativo"></div>
+                        <ng-template #volumen365dPositivo>
+                          <span class="text-success">+{{ (+crypto['365d'].volume_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                        <ng-template #volumen365dNegativo>
+                          <span class="text-danger">{{ (+crypto['365d'].volume_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                      </ng-template>
+                    </ng-template>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Volumen (YTD):</th>
+                  <td>
+                    <div *ngIf="crypto['ytd']; then volumenytd else desconocido"></div>
+                    <ng-template #volumenytd>
+                      <div *ngIf="crypto['ytd'].volume_change_pct !== undefined; then volumenytdChange else desconocido"></div>
+                      <ng-template #volumenytdChange>
+                        <div *ngIf="(+crypto['ytd'].volume_change_pct * 100) >= 0; then volumenytdPositivo else volumenytdNegativo"></div>
+                        <ng-template #volumenytdPositivo>
+                          <span class="text-success">+{{ (+crypto['ytd'].volume_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                        <ng-template #volumenytdNegativo>
+                          <span class="text-danger">{{ (+crypto['ytd'].volume_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                      </ng-template>
+                    </ng-template>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-4 p-5 pt-0">
+          <span class="h3">Variación del mercado</span>
+          <div class="table-responsive mt-4">
+            <table class="table">
+              <tbody>
+                <tr>
+                  <th>Capitalización (24H):</th>
+                  <td>
+                    <div *ngIf="crypto['1d']; then mercado1d else desconocido"></div>
+                    <ng-template #mercado1d>
+                      <div *ngIf="crypto['1d'].market_cap_change_pct !== undefined; then mercado1dChange else desconocido"></div>
+                      <ng-template #mercado1dChange>
+                        <div *ngIf="(+crypto['1d'].market_cap_change_pct * 100) >= 0; then mercado1dPositivo else mercado1dNegativo"></div>
+                        <ng-template #mercado1dPositivo>
+                          <span class="text-success">+{{ (+crypto['1d'].market_cap_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                        <ng-template #mercado1dNegativo>
+                          <span class="text-danger">{{ (+crypto['1d'].market_cap_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                      </ng-template>
+                    </ng-template>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Capitalización (7D):</th>
+                  <td>
+                    <div *ngIf="crypto['7d']; then mercado7d else desconocido"></div>
+                    <ng-template #mercado7d>
+                      <div *ngIf="crypto['7d'].market_cap_change_pct !== undefined; then mercado7dChange else desconocido"></div>
+                      <ng-template #mercado7dChange>
+                        <div *ngIf="(+crypto['7d'].market_cap_change_pct * 100) >= 0; then mercado7dPositivo else mercado7dNegativo"></div>
+                        <ng-template #mercado7dPositivo>
+                          <span class="text-success">+{{ (+crypto['7d'].market_cap_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                        <ng-template #mercado7dNegativo>
+                          <span class="text-danger">{{ (+crypto['7d'].market_cap_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                      </ng-template>
+                    </ng-template>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Capitalización (30D):</th>
+                  <td>
+                    <div *ngIf="crypto['30d']; then mercado30d else desconocido"></div>
+                    <ng-template #mercado30d>
+                      <div *ngIf="crypto['30d'].market_cap_change_pct !== undefined; then mercado30dChange else desconocido"></div>
+                      <ng-template #mercado30dChange>
+                        <div *ngIf="(+crypto['30d'].market_cap_change_pct * 100) >= 0; then mercado30dPositivo else mercado30dNegativo"></div>
+                        <ng-template #mercado30dPositivo>
+                          <span class="text-success">+{{ (+crypto['30d'].market_cap_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                        <ng-template #mercado30dNegativo>
+                          <span class="text-danger">{{ (+crypto['30d'].market_cap_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                      </ng-template>
+                    </ng-template>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Capitalización (365D):</th>
+                  <td>
+                    <div *ngIf="crypto['365d']; then mercado365d else desconocido"></div>
+                    <ng-template #mercado365d>
+                      <div *ngIf="crypto['365d'].market_cap_change_pct !== undefined; then mercado365dChange else desconocido"></div>
+                      <ng-template #mercado365dChange>
+                        <div *ngIf="(+crypto['365d'].market_cap_change_pct * 100) >= 0; then mercado365dPositivo else mercado365dNegativo"></div>
+                        <ng-template #mercado365dPositivo>
+                          <span class="text-success">+{{ (+crypto['365d'].market_cap_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                        <ng-template #mercado365dNegativo>
+                          <span class="text-danger">{{ (+crypto['365d'].market_cap_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                      </ng-template>
+                    </ng-template>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Capitalización (YTD):</th>
+                  <td>
+                    <div *ngIf="crypto['ytd']; then mercadoytd else desconocido"></div>
+                    <ng-template #mercadoytd>
+                      <div *ngIf="crypto['ytd'].market_cap_change_pct !== undefined; then mercadoytdChange else desconocido"></div>
+                      <ng-template #mercadoytdChange>
+                        <div *ngIf="(+crypto['ytd'].market_cap_change_pct * 100) >= 0; then mercadoytdPositivo else mercadoytdNegativo"></div>
+                        <ng-template #mercadoytdPositivo>
+                          <span class="text-success">+{{ (+crypto['ytd'].market_cap_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                        <ng-template #mercadoytdNegativo>
+                          <span class="text-danger">{{ (+crypto['ytd'].market_cap_change_pct * 100) | number:'.2-2' }}%</span>
+                        </ng-template>
+                      </ng-template>
+                    </ng-template>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="col-12 p-5 pt-0">
+          <span class="h3">Análisis técnico de {{ crypto.name }}</span>
+          <div id="tradingview_pro" class="mt-3" style="height: 40rem;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #desconocido>Desconocido</ng-template>

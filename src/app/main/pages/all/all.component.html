@@ -1,0 +1,126 @@
+<div class="container mt-5 mb-3">
+  <div *ngIf="cryptos.length == 0; else divCrypto" class="alert alert-info">Espere por favor...</div>
+
+  <ng-template #divCrypto>
+    <div class="row">
+      <p-table #cryptoTable [value]="cryptos" responsiveLayout="scroll" class="border rounded p-0">
+        <ng-template pTemplate="caption">
+          <div style="max-width: 25rem;">
+            <p-columnFilter type="text" field="name" placeholder="Filtrar por nombre..."></p-columnFilter>
+          </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+          <tr>
+            <th>#</th>
+            <th>Nombre</th>
+            <th>Precio (24H)</th>
+            <th>Capitalización de mercado (24H)</th>
+            <th>Volumen (24H)</th>
+            <th>Acciones</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-crypto>
+          <tr>
+            <td id="rango">{{ crypto.rank }}</td>
+            <td id="nombre">
+              <div class="d-none d-lg-block">
+                <div *ngIf="crypto.logo_url !== ''; then imagenLg else noImagenLg"></div>
+                <ng-template #imagenLg>
+                  <a [routerLink]="['/details', crypto.symbol]"><img class="small-icon img-fluid" [src]="crypto.logo_url" width="35"></a>
+                </ng-template>
+                <ng-template #noImagenLg>
+                  <a [routerLink]="['/details', crypto.symbol]"><img class="small-icon img-fluid" src="../../../../assets/img/unknown.png" width="35"></a>
+                </ng-template>
+                <span class="mx-4">{{ crypto.name }}</span>
+                <span style="color: gray">{{ crypto.symbol }}</span>
+              </div>
+              <div class="d-lg-none">
+                <div *ngIf="crypto.logo_url !== ''; then imagen else noImagen"></div>
+                <ng-template #imagen>
+                  <a [routerLink]="['/details', crypto.symbol]"><img class="small-icon img-fluid" [src]="crypto.logo_url" width="35"></a>
+                </ng-template>
+                <ng-template #noImagen>
+                  <a [routerLink]="['/details', crypto.symbol]"><img class="small-icon img-fluid" src="../../../../assets/img/unknown.png" width="35"></a>
+                </ng-template>
+                <div>{{ crypto.name }}</div>
+                <div>
+                  <span style="color: gray">{{ crypto.symbol }}</span>
+                </div>
+              </div>
+            </td>
+            <td id="precio">
+              <div *ngIf="crypto.price !== undefined; then precio else noPrecio"></div>
+              <ng-template #precio>
+                <div *ngIf="crypto.price < 0.01; then menor else mayor"></div>
+                <ng-template #menor>
+                  <div *ngIf="crypto.price < 0.0000000001; then infinitesimal else noInfinitesimal"></div>
+                  <ng-template #infinitesimal>
+                    <span><{{ 0.0000000001 | currency: moneda:'symbol':'1.2-10' }}</span>
+                  </ng-template>
+                  <ng-template #noInfinitesimal>
+                    <span>{{ crypto.price | currency: moneda:'symbol':'1.2-10' }}</span>
+                  </ng-template>
+                </ng-template>
+                <ng-template #mayor>
+                  <span>{{ crypto.price | currency: moneda }}</span>
+                </ng-template>
+                <div *ngIf="crypto['1d'] !== undefined">
+                  <div *ngIf="crypto['1d'].price_change_pct !== undefined">
+                    <div *ngIf="(+crypto['1d'].price_change_pct * 100) >= 0; then precioPositivo else precioNegativo"></div>
+                    <ng-template #precioPositivo>
+                      <span class="text-success">+{{ (+crypto['1d'].price_change_pct * 100) | number:'.2-2' }}%</span>
+                    </ng-template>
+                    <ng-template #precioNegativo>
+                      <span class="text-danger">{{ (+crypto['1d'].price_change_pct * 100) | number:'.2-2' }}%</span>
+                    </ng-template>
+                  </div>
+                </div>
+              </ng-template>
+              <ng-template #noPrecio>Desconocido</ng-template>
+            </td>
+            <td id="market_cap">
+              <div *ngIf="crypto.market_cap !== undefined; then mercado else noMercado"></div>
+              <ng-template #mercado>
+                {{ crypto.market_cap | currency: moneda }}
+                <div *ngIf="crypto['1d'] !== undefined">
+                  <div *ngIf="crypto['1d'].market_cap_change_pct !== undefined">
+                    <div *ngIf="(+crypto['1d'].market_cap_change_pct * 100) > 0; then mercadoPositivo else mercadoNegativo"></div>
+                    <ng-template #mercadoPositivo>
+                      <span class="text-success">+{{ (+crypto['1d'].market_cap_change_pct * 100) | number:'.2-2' }}%</span>
+                    </ng-template>
+                    <ng-template #mercadoNegativo>
+                      <span class="text-danger">{{ (+crypto['1d'].market_cap_change_pct * 100) | number:'.2-2' }}%</span>
+                    </ng-template>
+                  </div>
+                </div>
+              </ng-template>
+              <ng-template #noMercado>Desconocido</ng-template>
+            </td>
+            <td id="volumen">
+              <div *ngIf="crypto['1d'] !== undefined; then volumen else noVolumen"></div>
+              <ng-template #volumen>
+                {{ crypto['1d'].volume | currency: moneda }}
+                <div *ngIf="crypto['1d'].volume_change_pct !== undefined">
+                  <div *ngIf="(+crypto['1d'].volume_change_pct * 100) > 0; then volumenPositivo else volumenNegativo"></div>
+                  <ng-template #volumenPositivo>
+                    <span class="text-success">+{{ (+crypto['1d'].volume_change_pct * 100) | number:'.2-2' }}%</span>
+                  </ng-template>
+                  <ng-template #volumenNegativo>
+                    <span class="text-danger">{{ (+crypto['1d'].volume_change_pct * 100) | number:'.2-2' }}%</span>
+                  </ng-template>
+                </div>
+              </ng-template>
+              <ng-template #noVolumen>Desconocido</ng-template>
+            </td>
+            <td id="acciones">
+              <a [routerLink]="['/details', crypto.symbol]"><img class="small-icon img-fluid" src="../../../../assets/img/details.png" width="25" title="Detalles"></a>
+              <a *ngIf="!portafolio.has(crypto.symbol)" [routerLink]="['/portfolio', crypto.symbol]"><img class="small-icon img-fluid" src="../../../../assets/img/add.png" width="25" title="Agregar" class="ms-2"></a>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </ng-template>
+</div>
+
+<p-paginator [showJumpToPageDropdown]="true" [pageLinkSize]="3" [ngClass]="{'d-none': cryptos.length == 0}" currentPageReportTemplate="{currentPage}" [rows]="100" [totalRecords]="10000" (onPageChange)="cambiarPagina($event)" onkeypress="if (event.keyCode == 13) {event.preventDefault() }" styleClass="bg-transparent"></p-paginator>

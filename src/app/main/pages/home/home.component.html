@@ -1,0 +1,87 @@
+<div class="container my-5">
+  <div *ngIf="hayError">
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      <strong>¡Error!</strong> Se ha producido un error. Algunas de las funciones pueden no estar disponibles.
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-6">
+      <h1 class="display-1 text-center text-lg-start">Empieza a crear tu portafolio de criptomonedas</h1>
+      <p class="lead text-center text-lg-start">
+        CryptoFolio es el sitio ideal para crear tu portafolio de criptomonedas.
+        Además, permite consultar en tiempo real el estado de las criptomonedas.
+      </p>
+      <a [routerLink]="['/portfolio']"><button type="button" class="btn btn-primary btn-lg btn-block w-100">Crea tu portafolio ahora</button></a>
+      <a [routerLink]="['/all']"><button type="button" class="btn btn-secondary btn-lg btn-block w-100 mt-3">Estado actual de las criptomonedas</button></a>
+    </div>
+    <div class="col-lg-6">
+      <img src="../../../../assets/img/home.webp" class="img-fluid mt-3" alt="CryptoFolio Home GIF">
+    </div>
+
+    <div class="d-none d-md-block bg-white border rounded table-responsive p-5 mt-3" *ngIf="!hayError">
+      <table class="table table-hover table-sm m-0">
+        <tbody>
+          <tr *ngFor="let crypto of cryptos" class="align-middle">
+            <td>{{ crypto.rank }}</td>
+            <td>
+              <a [routerLink]="['/details', crypto.symbol]"><img class="small-icon img-fluid" [src]="crypto.logo_url" width="35"></a>
+              <span class="mx-4">{{ crypto.name }}</span>
+              <span style="color: gray">{{ crypto.symbol }}</span>
+            </td>
+            <td>
+              <span class="me-4">{{ crypto.price | currency: moneda }}</span>
+              <div>
+                <div *ngIf="crypto['1d'] !== undefined">
+                  <div *ngIf="(+crypto['1d'].price_change_pct * 100) > 0; then positivo else negativo"></div>
+                  <ng-template #positivo>
+                    <span class="text-success">+{{ (+crypto['1d'].price_change_pct * 100) | number:'.2-2' }}%</span>
+                  </ng-template>
+                  <ng-template #negativo>
+                    <span class="text-danger">{{ (+crypto['1d'].price_change_pct * 100) | number:'.2-2' }}%</span>
+                  </ng-template>
+                </div>
+              </div>
+            </td>
+            <td>
+              <a [routerLink]="['/details', crypto.symbol]"><img class="small-icon img-fluid" src="../../../../assets/img/details.png" width="25" title="Detalles"></a>
+              <a *ngIf="!portafolio.has(crypto.symbol)" [routerLink]="['/portfolio', crypto.symbol]"><img class="small-icon img-fluid"
+                src="../../../../assets/img/add.png" width="25" title="Agregar" class="ms-2"></a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="d-md-none bg-white border rounded table-responsive mt-3 p-0" *ngIf="!hayError">
+      <table class="table table-hover table-sm m-0">
+        <tbody>
+          <tr *ngFor="let crypto of cryptos" class="align-middle">
+            <td id="rango">{{ crypto.rank }}</td>
+            <td id="nombre">
+              <a [routerLink]="['/details', crypto.symbol]"><img class="small-icon img-fluid" [src]="crypto.logo_url" width="35"></a>
+              <span class="mx-4">{{ crypto.name }}</span>
+              <span style="color: gray">{{ crypto.symbol }}</span>
+            </td>
+            <td id="precio">
+              <span class="me-4">{{ crypto.price | currency: moneda }}</span>
+              <div>
+                <div *ngIf="crypto['1d'] !== undefined">
+                  <div *ngIf="(+crypto['1d'].price_change_pct * 100) > 0; then positivo else negativo"></div>
+                  <ng-template #positivo>
+                    <span class="text-success">+{{ (+crypto['1d'].price_change_pct * 100) | number:'.2-2' }}%</span>
+                  </ng-template>
+                  <ng-template #negativo>
+                    <span class="text-danger">{{ (+crypto['1d'].price_change_pct * 100) | number:'.2-2' }}%</span>
+                  </ng-template>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

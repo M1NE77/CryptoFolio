@@ -1,0 +1,240 @@
+<div class="container my-5">
+  <div *ngIf="error">
+    <div class="alert alert-warning fade show" role="alert">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      <strong>¡Atención!</strong> No se pudo encontrar la criptomoneda.
+    </div>
+  </div>
+
+  <div *ngIf="existe">
+    <div class="alert alert-warning fade show" role="alert">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      <strong>¡Atención!</strong> {{ busqueda }} ya existe en tu portafolio. Recuerda que puedes editarla o eliminarla.
+    </div>
+  </div>
+
+  <div *ngIf="cantidadError">
+    <div class="alert alert-warning fade show" role="alert">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      <strong>¡Atención!</strong> Debe introducir una cantidad válida.
+    </div>
+  </div>
+
+  <div *ngIf="exito">
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="fas fa-check-circle me-2"></i>
+      <strong>¡Éxito!</strong> Criptomoneda añadida a su portafolio satisfactoriamente.
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  </div>
+
+  <div *ngIf="eliminado">
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="fas fa-trash me-2"></i>
+      <strong>¡Éxito!</strong> {{ cryptoSeleccionada.name }} ha sido eliminado de su portafolio satisfactoriamente.
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  </div>
+
+  <div *ngIf="editado">
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="fas fa-check-circle me-2"></i>
+      <strong>¡Éxito!</strong> {{ cryptoSeleccionada.name }} ha sido editado satisfactoriamente.
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  </div>
+
+  <div class="bg-white border p-3 rounded d-flex flex-column align-items-center">
+    <div *ngIf="crypto != undefined && crypto != null;" class="col-lg-5 mb-3">
+      <span class="lead d-flex flex-column align-items-center">
+        <b>Criptomoneda seleccionada:</b>
+        <span>
+          <span class="me-2">{{ crypto.name }}</span>
+          <div *ngIf="crypto.logo_url !== ''; then imagenSel else noImagenSel"></div>
+          <ng-template #imagenSel>
+            <img class="small-icon img-fluid" [src]="crypto.logo_url" width="25">
+          </ng-template>
+          <ng-template #noImagenSel>
+            <img class="small-icon img-fluid" src="../../../../assets/img/unknown.png" width="25">
+          </ng-template>
+          <span class="ms-2">| {{ cantidad * +crypto.price| currency: moneda }}</span>
+        </span>
+      </span>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="p-inputgroup">
+        <input type="text" pInputText placeholder="Buscar símbolo..." [(ngModel)]="busqueda" (focus)="reiniciar(); eliminado = false; editado = false">
+        <button type="button" pButton pRipple label="Buscar" (click)="buscar()"></button>
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div *ngIf="error == false" class="p-inputgroup mt-2">
+        <input type="number" pInputText placeholder="Introduzca la cantidad..." [(ngModel)]="cantidad">
+        <button type="button" pButton pRipple label="Añadir" (click)="anadir()"></button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="portafolio.size == 0; else cargar">
+    <div class="text-center bg-white border mt-5 rounded p-5">
+      <h1 class="display-1">¿A qué esperas para utilizar nuestro portafolio de criptomonedas?</h1>
+      <p class="lead">
+        Monitoriza en tiempo real el estado de tu billetera de criptomonedas en un solo sitio.
+      </p>
+      <img src="../../../../assets/img/portafolio.webp" class="img-fluid mt-3" alt="CryptoFolio Home GIF">
+    </div>
+  </div>
+
+  <ng-template #cargar>
+    <div *ngIf="cryptos.length == 0; else divCrypto" class="alert alert-info mt-5">Espere por favor...</div>
+  </ng-template>
+
+  <ng-template #divCrypto>
+    <div class="bg-white border rounded mt-5 p-5">
+      <span class="h3">Resumen gráfico</span>
+    </div>
+
+    <div class="row mt-5">
+      <div class="col-xl-9">
+        <div class="bg-white border rounded p-5">
+          <p-chart type="line" [data]="lineStylesData" height="400"></p-chart>
+        </div>
+      </div>
+      <div class="col-xl-3 mt-5 mt-xl-0">
+        <div class="bg-white border rounded p-5 h-100 d-flex justify-content-center align-items-center">
+          <div style="max-width: 15rem;">
+            <p-chart type="doughnut" [data]="data"></p-chart>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white border rounded mt-5 p-5">
+      <span class="h3">Resumen</span>
+    </div>
+
+    <div class="border rounded my-5">
+      <p-table [value]="cryptos" responsiveLayout="scroll" [paginator]="true" [rows]="10">
+        <ng-template pTemplate="caption">
+          <span>Total: {{ precioTotal | currency: moneda }}</span>
+        </ng-template>
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Nombre</th>
+            <th>Precio (24H)</th>
+            <th>Cantidad</th>
+            <th>Valor</th>
+            <th>Acciones</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-crypto>
+          <tr>
+            <td id="nombre">
+              <div class="d-none d-lg-block">
+                <div *ngIf="crypto.logo_url !== ''; then imagenLg else noImagenLg"></div>
+                <ng-template #imagenLg>
+                  <a [routerLink]="['/details', crypto.symbol]"><img class="small-icon img-fluid"
+                      [src]="crypto.logo_url" width="35"></a>
+                </ng-template>
+                <ng-template #noImagenLg>
+                  <a [routerLink]="['/details', crypto.symbol]"><img class="small-icon img-fluid"
+                      src="../../../../assets/img/unknown.png" width="35"></a>
+                </ng-template>
+                <span class="mx-4">{{ crypto.name }}</span>
+                <span style="color: gray">{{ crypto.symbol }}</span>
+              </div>
+              <div class="d-lg-none">
+                <div *ngIf="crypto.logo_url !== ''; then imagen else noImagen"></div>
+                <ng-template #imagen>
+                  <a [routerLink]="['/details', crypto.symbol]"><img class="small-icon img-fluid"
+                      [src]="crypto.logo_url" width="35"></a>
+                </ng-template>
+                <ng-template #noImagen>
+                  <a [routerLink]="['/details', crypto.symbol]"><img class="small-icon img-fluid"
+                      src="../../../../assets/img/unknown.png" width="35"></a>
+                </ng-template>
+                <div>{{ crypto.name }}</div>
+                <div>
+                  <span style="color: gray">{{ crypto.symbol }}</span>
+                </div>
+              </div>
+            </td>
+            <td id="precio">
+              <div *ngIf="crypto.price !== undefined; then precio else noPrecio"></div>
+              <ng-template #precio>
+                <div *ngIf="crypto.price < 0.01; then menor else mayor"></div>
+                <ng-template #menor>
+                  <div *ngIf="crypto.price < 0.0000000001; then infinitesimal else noInfinitesimal"></div>
+                  <ng-template #infinitesimal>
+                    <span>
+                      <{{ 0.0000000001 | currency: moneda:'symbol':'1.2-10' }}</span> </ng-template> <ng-template
+                        #noInfinitesimal>
+                        <span>{{ crypto.price | currency: moneda:'symbol':'1.2-10' }}</span>
+                  </ng-template>
+                </ng-template>
+                <ng-template #mayor>
+                  <span>{{ crypto.price | currency: moneda }}</span>
+                </ng-template>
+                <div *ngIf="crypto['1d'] !== undefined">
+                  <div *ngIf="crypto['1d'].price_change_pct !== undefined">
+                    <div *ngIf="(+crypto['1d'].price_change_pct * 100) >= 0; then precioPositivo else precioNegativo">
+                    </div>
+                    <ng-template #precioPositivo>
+                      <span class="text-success">+{{ (+crypto['1d'].price_change_pct * 100) | number:'.2-2' }}%</span>
+                    </ng-template>
+                    <ng-template #precioNegativo>
+                      <span class="text-danger">{{ (+crypto['1d'].price_change_pct * 100) | number:'.2-2' }}%</span>
+                    </ng-template>
+                  </div>
+                </div>
+              </ng-template>
+              <ng-template #noPrecio>Desconocido</ng-template>
+            </td>
+            <td>{{ portafolio.get(crypto.symbol) }}</td>
+            <td>{{ portafolio.get(crypto.symbol) * crypto.price | currency: moneda }}</td>
+            <td class="pe-1 ps-0 px-lg-2">
+              <div class="d-flex">
+                <a [routerLink]="['/details', crypto.symbol]"><img class="small-icon img-fluid"
+                    src="../../../../assets/img/details.png" width="25" title="Detalles"></a>
+                <img class="small-icon img-fluid ms-2" src="../../../../assets/img/edit.png" role="button" width="25"
+                  (click)="displayModal = true; cryptoSeleccionada = crypto; obtenerCantidad();" title="Editar">
+                <img class="small-icon img-fluid ms-2" src="../../../../assets/img/delete.png" role="button" width="25"
+                  (click)="cryptoSeleccionada = crypto; eliminar(crypto.symbol, crypto.name)" title="Eliminar">
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </ng-template>
+</div>
+
+<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle" [breakpoints]="{'640px': '90vw'}"></p-confirmDialog>
+
+<p-dialog header="Editar" [(visible)]="displayModal" [modal]="true" [baseZIndex]="10000" [draggable]="false"
+  [resizable]="false" [breakpoints]="{'960px': '60vw', '640px': '90vw'}" [style]="{width: '30rem'}">
+  <p-header>Editar</p-header>
+  <ng-container *ngIf="cryptoSeleccionada != undefined">
+    <p-fieldset>
+      <p-header>
+        <div *ngIf="cryptoSeleccionada.logo_url !== ''; then imagenEditar else noImagenEditar"></div>
+        <ng-template #imagenEditar>
+          <img class="small-icon img-fluid" [src]="cryptoSeleccionada.logo_url" width="30">
+        </ng-template>
+        <ng-template #noImagenEditar>
+          <img class="small-icon img-fluid" src="../../../../assets/img/unknown.png" width="30">
+        </ng-template>
+        {{ cryptoSeleccionada.name }}
+      </p-header>
+      <p><span class="fw-bold">Valor actual:</span> {{ +cryptoSeleccionada.price * cantidadCryptoSeleccionada | currency: moneda }}</p>
+      <label for="float-input" class="fw-bold">Cantidad:</label>
+      <input id="float-input" class="ms-2" type="number" pInputText [(ngModel)]="cantidadCryptoSeleccionada" min="0.01" [style]="{'max-width': '40vw'}">
+    </p-fieldset>
+  </ng-container>
+  <ng-template pTemplate="footer">
+    <p-button styleClass="p-button-danger" icon="pi pi-times" (click)="displayModal=false" label="Cancelar"></p-button>
+    <p-button icon="pi pi-check" (click)="actualizarCrypto()" label="Editar" class="p-button-text" styleClass="me-0"></p-button>
+  </ng-template>
+</p-dialog>
